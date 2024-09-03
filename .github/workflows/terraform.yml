@@ -40,7 +40,7 @@ jobs:
           name: terraform-plan
           path: terraform.tfplan
 
-      - name: Create PR for Terraform Plan
+      - name: Create Pull Request for Terraform Plan
         id: create_pr
         uses: peter-evans/create-pull-request@v4
         with:
@@ -62,17 +62,41 @@ jobs:
         uses: trstringer/manual-approval@v1
         with:
           secret: ${{ secrets.GITHUB_TOKEN }}
-          approvers: Mansi123098
+          approvers: ${{ secrets.APPROVERS }}
           minimum-approvals: 1
           issue-title: "Approval needed for Terraform deployment"
           issue-body: "Please approve or deny the Terraform deployment."
 
-  merge:
+  apply:
     runs-on: ubuntu-latest
     needs: review
     if: github.event_name == 'pull_request' && github.event.action == 'approved'
     steps:
-      - name: Merge PR
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.9.5
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-southeast-2
+
+      - name: Download Terraform Plan
+        uses: actions/download-artifact@v3
+        with:
+          name: terraform-plan
+          path: terraform.tfplan
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve terraform.tfplan
+
+      - name: Merge Pull Request
         uses: github-script@v6
         with:
           script: |
