@@ -97,7 +97,7 @@ jobs:
         run: terraform apply -auto-approve terraform.tfplan
 
       - name: Merge Pull Request
-        uses: github-script@v6
+        uses: actions/github-script@v6
         with:
           script: |
             const pr = github.context.payload.pull_request;
