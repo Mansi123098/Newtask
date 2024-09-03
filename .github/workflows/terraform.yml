@@ -106,5 +106,6 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 pull_number: pr.number,
+                merge_method: 'merge' // or 'squash', 'rebase'
               });
             }
